@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Макет: Личный кабинет клиента + Админ-панель</title>
+<style>
+  :root {
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --green: #16a34a;
+    --red: #dc2626;
+    --blue: #2563eb;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+  body { background: var(--bg); color: var(--text); }
+
+  /* Demo switcher */
+  .demo-bar {
+    background: #0f172a; color: #fff; padding: 10px 20px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .demo-bar span { font-size: 13px; opacity: .7; }
+  .demo-bar button {
+    background: #1e293b; color: #cbd5e1; border: 1px solid #334155;
+    padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px;
+  }
+  .demo-bar button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .screen { display: none; }
+  .screen.visible { display: block; }
+
+  .wrap { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+
+  /* Header */
+  .site-header {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+  }
+  .site-header .wrap { margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+  .logo { font-size: 20px; font-weight: 700; color: var(--accent); }
+  .logo small { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
+  .user-box { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--accent);
+    color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600;
+  }
+  .btn-logout { background: none; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; color: var(--muted); font-size: 13px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 20px;
+  }
+  .card h2 { font-size: 17px; margin-bottom: 4px; }
+  .card .hint { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+
+  /* Notification */
+  .notice {
+    background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
+    padding: 12px 16px; border-radius: 10px; font-size: 14px; margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* Files table */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block; padding: 3px 8px; border-radius: 5px;
+    font-size: 11px; font-weight: 700; color: #fff; margin-right: 8px;
+  }
+  .badge.pdf { background: var(--red); }
+  .badge.doc { background: var(--blue); }
+  .badge.xls { background: var(--green); }
+  .btn {
+    background: var(--accent); color: #fff; border: none; padding: 8px 16px;
+    border-radius: 8px; cursor: pointer; font-size: 13px;
+  }
+  .btn:hover { background: var(--accent-dark); }
+  .btn.sm { padding: 6px 12px; }
+  .btn.outline { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  .tag-new { background: #dcfce7; color: var(--green); font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+  /* Forms */
+  .form-row { margin-bottom: 14px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+  input, textarea, select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 14px; background: #fff;
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* Admin layout */
+  .admin-layout { display: grid; grid-template-columns: 210px 1fr; gap: 20px; }
+  @media (max-width: 720px) { .admin-layout { grid-template-columns: 1fr; } }
+  .sidebar { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; height: fit-content; }
+  .sidebar a {
+    display: block; padding: 10px 14px; border-radius: 8px; color: var(--text);
+    text-decoration: none; font-size: 14px; margin-bottom: 4px;
+  }
+  .sidebar a.active { background: #eff6ff; color: var(--accent); font-weight: 600; }
+  .sidebar a .count { float: right; background: var(--red); color: #fff; font-size: 11px; border-radius: 10px; padding: 1px 7px; }
+
+  .upload-zone {
+    border: 2px dashed #bfdbfe; border-radius: 10px; padding: 28px;
+    text-align: center; color: var(--muted); background: #f8fafc; margin-bottom: 16px;
+  }
+  .upload-zone strong { color: var(--accent); }
+
+  .msg { padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .msg:last-child { border-bottom: none; }
+  .msg .meta { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .msg.unread .meta::before { content: "● "; color: var(--red); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  @media (max-width: 640px) { .stats { grid-template-columns: 1fr; } }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
+  .stat .num { font-size: 26px; font-weight: 700; }
+  .stat .lbl { font-size: 13px; color: var(--muted); }
+
+  /* Admin sections */
+  .admin-section { display: none; }
+  .admin-section.visible { display: block; }
+
+  .status {
+    display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;
+  }
+  .status.new { background: #fee2e2; color: var(--red); }
+  .status.work { background: #fef9c3; color: #a16207; }
+  .status.done { background: #dcfce7; color: var(--green); }
+
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .toolbar input, .toolbar select { width: auto; flex: 1; min-width: 160px; }
+
+  .actions { display: flex; gap: 6px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <span><strong>ДЕМО-МАКЕТ</strong> — нажимать можно, данные тестовые:</span>
+  <button id="tab-client" class="active" onclick="show('client')">Личный кабинет клиента</button>
+  <button id="tab-admin" onclick="show('admin')">Панель администратора</button>
+</div>
+
+<!-- ================= КЛИЕНТ ================= -->
+<div class="screen visible" id="screen-client">
+
+  <div class="site-header">
+    <div class="wrap">
+      <div class="logo">Компания<small>личный кабинет клиента</small></div>
+      <div class="user-box">
+        <div class="avatar">ИП</div>
+        <div>Иванов Иван<br><small style="color:var(--muted)">Договор № 1042</small></div>
+        <button class="btn-logout">Выйти</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="notice">
+      <div>У вас <strong>1 новый документ</strong> — «Результат от 12.06.pdf»</div>
+      <button class="btn sm">Посмотреть</button>
+    </div>
+
+    <div class="card">
+      <h2>Мои документы</h2>
+      <div class="hint">Файлы доступны только вам. Нажмите «Скачать», чтобы сохранить документ.</div>
+      <table>
+        <thead>
+          <tr><th>Документ</th><th>Дата</th><th>Размер</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge pdf">PDF</span>Результат от 12.06.pdf &nbsp;<span class="tag-new">Новый</span></td>
+            <td>12.06.2026</td><td>1,2 МБ</td>
+            <td style="text-align:right"><button class="btn sm">Скачать</button></td>
+          </tr>
+          <tr>
+            <td><span class="badge doc">WORD</span>Заключение_1042.docx</td>
+            <td>28.05.2026</td><td>340 КБ</td>
+            <td style="text-align:right"><button class="btn sm">Скачать</button></td>
+          </tr>
+          <tr>
+            <td><span class="badge xls">EXCEL</span>Спецификация_май.xlsx</td>
+            <td>15.05.2026</td><td>96 КБ</td>
+            <td style="text-align:right"><button class="btn sm">Скачать</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h2>Заказать курьера</h2>
+        <div class="hint">Курьер привезёт оригиналы документов по указанному адресу.</div>
+        <div class="form-row"><label>Желаемая дата</label><input type="date"></div>
+        <div class="form-row"><label>Адрес доставки</label><input type="text" placeholder="Город, улица, дом, офис"></div>
+        <div class="form-row"><label>Комментарий</label><textarea placeholder="Например: позвонить за 30 минут"></textarea></div>
+        <button class="btn">Отправить заявку</button>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)">
+          Ваша последняя заявка: доставка 15.06, ул. Ленина 5 — <span class="status work">В работе</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Оставить сообщение</h2>
+        <div class="hint">Ответим на email или по телефону в течение рабочего дня.</div>
+        <div class="form-row"><label>Тема</label><input type="text" placeholder="О чём вопрос?"></div>
+        <div class="form-row"><label>Сообщение</label><textarea placeholder="Текст сообщения"></textarea></div>
+        <button class="btn">Отправить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= АДМИН ================= -->
+<div class="screen" id="screen-admin">
+
+  <div class="site-header">
+    <div class="wrap">
+      <div class="logo">Компания<small>панель администратора</small></div>
+      <div class="user-box">
+        <div class="avatar" style="background:#0f172a">А</div>
+        <div>Администратор</div>
+        <button class="btn-logout">Выйти</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><div class="num">312</div><div class="lbl">Клиентов в базе</div></div>
+      <div class="stat"><div class="num">47</div><div class="lbl">Файлов загружено за неделю</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Новых заявок и сообщений</div></div>
+    </div>
+
+    <div class="admin-layout">
+      <div class="sidebar">
+        <a href="#" id="nav-upload" class="active" onclick="adminShow('upload'); return false;">Загрузить файл</a>
+        <a href="#" id="nav-clients" onclick="adminShow('clients'); return false;">Клиенты</a>
+        <a href="#" id="nav-messages" onclick="adminShow('messages'); return false;">Сообщения <span class="count">3</span></a>
+        <a href="#" id="nav-courier" onclick="adminShow('courier'); return false;">Заявки на курьера <span class="count">2</span></a>
+        <a href="#" id="nav-history" onclick="adminShow('history'); return false;">История загрузок</a>
+      </div>
+
+      <div>
+        <!-- Загрузка файла -->
+        <div class="admin-section visible" id="asection-upload">
+          <div class="card">
+            <h2>Загрузка документа клиенту</h2>
+            <div class="hint">Файл появится в личном кабинете выбранного клиента сразу после публикации.</div>
+            <div class="form-row">
+              <label>Клиент</label>
+              <select>
+                <option>Иванов Иван — договор № 1042</option>
+                <option>Петрова Анна — договор № 1057</option>
+                <option>ООО «Вектор» — договор № 983</option>
+              </select>
+            </div>
+            <div class="upload-zone">
+              Перетащите файл сюда или <strong>выберите на компьютере</strong><br>
+              <small>PDF, Word, Excel — до 50 МБ</small>
+            </div>
+            <div class="form-row">
+              <label>Название документа (видит клиент)</label>
+              <input type="text" value="Результат от 12.06">
+            </div>
+            <label style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+              <input type="checkbox" checked style="width:auto"> Отправить клиенту email-уведомление о новом файле
+            </label>
+            <button class="btn">Опубликовать в личный кабинет</button>
+          </div>
+
+          <div class="card">
+            <h2>Последние сообщения и заявки</h2>
+            <div class="msg unread">
+              <div class="meta">Заявка на курьера · Петрова Анна · сегодня 10:24</div>
+              Доставить оригиналы: г. Москва, ул. Ленина 5, оф. 12. Дата: 15.06.
+            </div>
+            <div class="msg unread">
+              <div class="meta">Сообщение · Иванов Иван · сегодня 09:10</div>
+              Добрый день! Когда будет готов документ за июнь?
+            </div>
+            <div class="msg">
+              <div class="meta">Заявка на курьера · ООО «Вектор» · вчера 16:40</div>
+              Нужен курьер в пятницу после 14:00.
+            </div>
+          </div>
+        </div>
+
+        <!-- Клиенты -->
+        <div class="admin-section" id="asection-clients">
+          <div class="card">
+            <h2>Клиенты</h2>
+            <div class="hint">База аккаунтов личного кабинета. Здесь создаются новые клиенты и выдаются пароли.</div>
+            <div class="toolbar">
+              <input type="text" placeholder="Поиск: ФИО, № договора, email">
+              <button class="btn">+ Добавить клиента</button>
+            </div>
+            <table>
+              <thead>
+                <tr><th>Клиент</th><th>Договор</th><th>Email</th><th>Файлов</th><th>Последний вход</th><th></th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Иванов Иван</td><td>№ 1042</td><td>ivanov@mail.ru</td><td>3</td><td>сегодня 09:12</td>
+                  <td><div class="actions"><button class="btn sm outline">Открыть</button><button class="btn sm outline">Сбросить пароль</button></div></td>
+                </tr>
+                <tr>
+                  <td>Петрова Анна</td><td>№ 1057</td><td>petrova@gmail.com</td><td>1</td><td>вчера 18:40</td>
+                  <td><div class="actions"><button class="btn sm outline">Открыть</button><button class="btn sm outline">Сбросить пароль</button></div></td>
+                </tr>
+                <tr>
+                  <td>ООО «Вектор»</td><td>№ 983</td><td>office@vektor.ru</td><td>12</td><td>10.06.2026</td>
+                  <td><div class="actions"><button class="btn sm outline">Открыть</button><button class="btn sm outline">Сбросить пароль</button></div></td>
+                </tr>
+                <tr>
+                  <td>Сидоров Алексей</td><td>№ 1061</td><td>sidorov@yandex.ru</td><td>0</td><td>—</td>
+                  <td><div class="actions"><button class="btn sm outline">Открыть</button><button class="btn sm outline">Сбросить пароль</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Сообщения -->
+        <div class="admin-section" id="asection-messages">
+          <div class="card">
+            <h2>Сообщения от клиентов</h2>
+            <div class="hint">Непрочитанные отмечены красной точкой. Ответ уходит клиенту на email.</div>
+            <div class="msg unread">
+              <div class="meta">Иванов Иван · договор № 1042 · сегодня 09:10 · тема: «Готовность документа»</div>
+              Добрый день! Когда будет готов документ за июнь?
+              <div class="actions" style="justify-content:flex-start;margin-top:8px">
+                <button class="btn sm">Ответить</button>
+                <button class="btn sm outline">Пометить прочитанным</button>
+              </div>
+            </div>
+            <div class="msg unread">
+              <div class="meta">Сидоров Алексей · договор № 1061 · вчера 15:02 · тема: «Доступ»</div>
+              Не могу войти в личный кабинет, пишет «неверный пароль».
+              <div class="actions" style="justify-content:flex-start;margin-top:8px">
+                <button class="btn sm">Ответить</button>
+                <button class="btn sm outline">Пометить прочитанным</button>
+              </div>
+            </div>
+            <div class="msg">
+              <div class="meta">Петрова Анна · договор № 1057 · 11.06.2026 · тема: «Реквизиты»</div>
+              Пришлите, пожалуйста, актуальные реквизиты для оплаты.
+              <div class="actions" style="justify-content:flex-start;margin-top:8px">
+                <button class="btn sm outline">Ответить</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Заявки на курьера -->
+        <div class="admin-section" id="asection-courier">
+          <div class="card">
+            <h2>Заявки на курьера</h2>
+            <div class="hint">Меняйте статус заявки — клиент видит его в своём личном кабинете.</div>
+            <table>
+              <thead>
+                <tr><th>Клиент</th><th>Дата доставки</th><th>Адрес</th><th>Статус</th><th></th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Петрова Анна</td><td>15.06.2026</td><td>г. Москва, ул. Ленина 5, оф. 12</td>
+                  <td><span class="status new">Новая</span></td>
+                  <td><div class="actions"><button class="btn sm">В работу</button></div></td>
+                </tr>
+                <tr>
+                  <td>ООО «Вектор»</td><td>13.06.2026</td><td>г. Москва, пр. Мира 40</td>
+                  <td><span class="status work">В работе</span></td>
+                  <td><div class="actions"><button class="btn sm">Выполнена</button></div></td>
+                </tr>
+                <tr>
+                  <td>Иванов Иван</td><td>05.06.2026</td><td>г. Химки, ул. Мира 3</td>
+                  <td><span class="status done">Выполнена</span></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- История загрузок -->
+        <div class="admin-section" id="asection-history">
+          <div class="card">
+            <h2>История загрузок</h2>
+            <div class="hint">Какие файлы, кому и когда были опубликованы. Отсюда же можно удалить ошибочно загруженный файл.</div>
+            <div class="toolbar">
+              <input type="text" placeholder="Поиск по названию файла или клиенту">
+              <select><option>Все форматы</option><option>PDF</option><option>Word</option><option>Excel</option></select>
+            </div>
+            <table>
+              <thead>
+                <tr><th>Файл</th><th>Клиент</th><th>Загружен</th><th>Скачан клиентом</th><th></th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="badge pdf">PDF</span>Результат от 12.06.pdf</td>
+                  <td>Иванов Иван</td><td>12.06.2026 11:30</td><td><span class="status done">Да, 12.06 14:05</span></td>
+                  <td><div class="actions"><button class="btn sm outline">Удалить</button></div></td>
+                </tr>
+                <tr>
+                  <td><span class="badge xls">EXCEL</span>Спецификация_июнь.xlsx</td>
+                  <td>ООО «Вектор»</td><td>11.06.2026 16:12</td><td><span class="status new">Нет</span></td>
+                  <td><div class="actions"><button class="btn sm outline">Удалить</button></div></td>
+                </tr>
+                <tr>
+                  <td><span class="badge doc">WORD</span>Заключение_1057.docx</td>
+                  <td>Петрова Анна</td><td>10.06.2026 09:44</td><td><span class="status done">Да, 10.06 18:20</span></td>
+                  <td><div class="actions"><button class="btn sm outline">Удалить</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function show(which) {
+    document.getElementById('screen-client').classList.toggle('visible', which === 'client');
+    document.getElementById('screen-admin').classList.toggle('visible', which === 'admin');
+    document.getElementById('tab-client').classList.toggle('active', which === 'client');
+    document.getElementById('tab-admin').classList.toggle('active', which === 'admin');
+    window.scrollTo(0, 0);
+  }
+
+  function adminShow(section) {
+    var sections = document.querySelectorAll('.admin-section');
+    for (var i = 0; i < sections.length; i++) sections[i].classList.remove('visible');
+    document.getElementById('asection-' + section).classList.add('visible');
+
+    var links = document.querySelectorAll('.sidebar a');
+    for (var j = 0; j < links.length; j++) links[j].classList.remove('active');
+    document.getElementById('nav-' + section).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+</script>
+</body>
+</html>
