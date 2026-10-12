@@ -50,6 +50,11 @@
   .opts input { margin-top: 3px; }
 
   .foot { text-align: center; font-size: 13px; color: var(--muted); margin-top: 24px; line-height: 1.6; }
+  .btn-send {
+    background: var(--accent); color: #fff; border: none; padding: 14px 28px;
+    border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 600;
+  }
+  .btn-send:hover { background: #1d4ed8; }
 
   @media print {
     body { background: #fff; }
@@ -215,10 +220,61 @@
   </div>
 
   <div class="foot">
-    Спасибо! Отправьте заполненный бриф ответным сообщением.<br>
-    По итогам брифа в течение 1 рабочего дня пришлю финальную смету и сроки.
+    <button class="btn-send" onclick="collectAnswers()">Сформировать ответы для отправки</button>
+    <div id="send-status" style="margin-top:12px;font-weight:600;color:#2563eb"></div>
+    <div style="margin-top:12px">
+      Нажмите кнопку выше: ответы скопируются в буфер обмена и сохранятся файлом.<br>
+      Вставьте текст в ответное сообщение или прикрепите файл — как удобнее.<br>
+      По итогам брифа в течение 1 рабочего дня пришлю финальную смету и сроки.
+    </div>
   </div>
 
 </div>
+
+<script>
+function collectAnswers() {
+  var lines = ['ОТВЕТЫ НА БРИФ — портал с личными кабинетами клиентов', ''];
+  var blocks = document.querySelectorAll('.block');
+  for (var b = 0; b < blocks.length; b++) {
+    var h2 = blocks[b].querySelector('h2');
+    if (h2) lines.push(h2.textContent.trim());
+    var qs = blocks[b].querySelectorAll('.q');
+    for (var i = 0; i < qs.length; i++) {
+      var label = qs[i].querySelector('.label');
+      var title = label ? label.textContent.replace(/\s+/g, ' ').trim() : '';
+      var answers = [];
+      var fields = qs[i].querySelectorAll('input[type=text], input[type=email], textarea');
+      for (var f = 0; f < fields.length; f++) {
+        if (fields[f].value.trim()) answers.push(fields[f].value.trim());
+      }
+      var seen = {};
+      var checks = qs[i].querySelectorAll('input[type=radio]:checked, input[type=checkbox]:checked');
+      for (var c = 0; c < checks.length; c++) {
+        var t = checks[c].closest('label').textContent.replace(/\s+/g, ' ').trim();
+        if (!seen[t]) { seen[t] = 1; answers.push(t); }
+      }
+      lines.push(title);
+      lines.push('-> ' + (answers.length ? answers.join('; ') : '(не отвечено)'));
+      lines.push('');
+    }
+  }
+  var text = lines.join('\n');
+  var status = document.getElementById('send-status');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () {
+      status.textContent = 'Ответы скопированы в буфер обмена и сохранены в файл brief-answers.txt';
+    }, function () {
+      status.textContent = 'Ответы сохранены в файл brief-answers.txt';
+    });
+  } else {
+    status.textContent = 'Ответы сохранены в файл brief-answers.txt';
+  }
+  var blob = new Blob(['﻿' + text], { type: 'text/plain;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'brief-answers.txt';
+  a.click();
+}
+</script>
 </body>
 </html>
